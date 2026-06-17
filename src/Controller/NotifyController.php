@@ -7,32 +7,35 @@ use Akki\SyliusPayumSlimpayPlugin\Constants\Constants;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
-use HapiClient\Exception\RelNotFoundException;
 use HapiClient\Hal\CustomRel;
 use HapiClient\Hal\Resource;
 use HapiClient\Http\Auth\Oauth2BasicAuthentication;
 use HapiClient\Http\Follow;
 use HapiClient\Http\HapiClient;
-use Payum\Bundle\PayumBundle\Controller\PayumController;
+use Payum\Core\Payum;
 use Payum\Core\Request\Notify;
-use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethod;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
+use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-class NotifyController extends PayumController
+class NotifyController
 {
+    public function __construct(
+        private readonly Payum $payum,
+        private readonly RepositoryInterface $paymentMethodRepository,
+        private readonly RepositoryInterface $paymentRepository,
+    ) {
+    }
 
     /**
-     * @param Request $request
-     * @return Response
      * @throws Exception
      */
-    public function doAction(Request $request) {
-
+    public function doAction(Request $request): Response
+    {
         $body = file_get_contents('php://input');
         $order = Resource::fromJson($body);
 
@@ -42,7 +45,7 @@ class NotifyController extends PayumController
         } elseif (strpos($order->getState()['state'], 'closed.completed') === 0) {
             // L'utilisateur a été au bout du paiement
             /** @var PaymentMethod $slimpay */
-            $slimpay = $this->get('sylius.repository.payment_method')->findOneByCode('slimpay');
+            $slimpay = $this->paymentMethodRepository->findOneBy(['code' => 'slimpay']);
 
             $hapiClient = $this->getHapiClient($slimpay->getGatewayConfig()->getConfig());
 
@@ -52,11 +55,8 @@ class NotifyController extends PayumController
 
             // Find your payment entity
             try {
-                /** @var EntityRepository $paymentRepository */
-                $paymentRepository = $this->get('sylius.repository.payment');
-
                 /** @var PaymentInterface $payment */
-                $payment = $paymentRepository
+                $payment = $this->paymentRepository
                     ->createQueryBuilder('p')
                     ->join('p.method', 'm')
                     ->join('m.gatewayConfig', 'gc')
@@ -85,19 +85,19 @@ class NotifyController extends PayumController
             $gateway_name = $payment_method->getGatewayConfig()->getGatewayName();
 
             // Execute notify & status actions.
-            $gateway = $this->getPayum()->getGateway($gateway_name);
+            $gateway = $this->payum->getGateway($gateway_name);
 
             $gateway->execute(new Notify($payment));
 
             // Return expected response
             return new Response();
-        }else {
+        } else {
             return new Response('', Response::HTTP_BAD_REQUEST);
         }
     }
 
-    private function getHapiClient(array $config) {
-
+    private function getHapiClient(array $config)
+    {
         $apiEndPoint = $config['sandbox'] ? Constants::BASE_URI_SANDBOX : Constants::BASE_URI_PROD;
         return new HapiClient(
             $apiEndPoint,
@@ -112,22 +112,16 @@ class NotifyController extends PayumController
     }
 
     /**
-     * @param HapiClient $hapiClient
      * @param string $follow
-     * @param Resource|null $resource
-     *
-     * @return Resource
      */
-    protected function doRequestInfosNotify(HapiClient $hapiClient, $follow, Resource $resource = null) {
+    protected function doRequestInfosNotify(HapiClient $hapiClient, $follow, ?Resource $resource = null): Resource
+    {
         $rel = new CustomRel($this->getRelationsNamespace() . $follow);
         $follow = new Follow($rel);
         return $hapiClient->sendFollow($follow, $resource);
     }
 
-    /**
-     * @return string
-     */
-    protected function getRelationsNamespace()
+    protected function getRelationsNamespace(): string
     {
         return Constants::RELATION_URI . '/alps#';
     }
