@@ -1,5 +1,5 @@
 {
-  "name": "akki/sylius-payum-slimpay2-plugin",
+  "name": "akki-team/sylius-payum-slimpay2-plugin",
   "description": "Payum Slimpay Bridge for Sylius",
   "type": "sylius-plugin",
   "require": {
