@@ -22,4 +22,9 @@ services:
     #Slimpay notify
     Akki\SyliusPayumSlimpayPlugin\Controller\NotifyController:
         public: true
-        class: Akki\SyliusPayumSlimpayPlugin\Controller\NotifyController
+        arguments:
+            - '@payum'
+            - '@sylius.repository.payment_method'
+            - '@sylius.repository.payment'
+        tags:
+            - { name: controller.service_arguments }
