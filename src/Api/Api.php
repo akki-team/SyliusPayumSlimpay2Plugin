@@ -105,7 +105,7 @@ class Api
                 'type' => Constants::ITEM_TYPE_PAYMENT,
                 'action' => Constants::ITEM_ACTION_CREATE,
                 'payin' => [
-                    'reference' => "${mandateReference}_PREL",
+                    'reference' => "{$mandateReference}_PREL",
                     'amount' => $amount/100,
                     'currency' => $currency,
                     'scheme' => null,
