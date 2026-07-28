@@ -1,15 +1,22 @@
 {
-  "name": "akki/sylius-payum-slimpay2-plugin",
+  "name": "akki-team/sylius-payum-slimpay2-plugin",
   "description": "Payum Slimpay Bridge for Sylius",
   "type": "sylius-plugin",
   "require": {
-    "sylius/sylius": "^1.5",
-    "payum/core": "^1.3",
-    "slimpay/hapiclient": "^1.0"
+    "php": "^8.2",
+    "sylius/sylius": "^2.0",
+    "payum/core": "^1.7",
+    "payum/payum-bundle": "^2.5",
+    "akki-team/hapiclient": "^1.0"
   },
   "require-dev": {
-    "payum/core": "^1.3@dev",
-    "php-http/guzzle6-adapter": "^1.0"
+    "php-http/guzzle7-adapter": "^1.0"
+  },
+  "repositories": {
+    "akkiHapiclient": {
+      "type": "vcs",
+      "url": "https://github.com/akki-team/hapiclient-php.git"
+    }
   },
   "license": "MIT",
   "authors": [
