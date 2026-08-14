@@ -15,7 +15,7 @@ final class SlimpayGatewayConfigurationType extends AbstractType
     /**
      * {@inheritdoc}
      */
-    public function buildForm(FormBuilderInterface $builder, array $options)
+    public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
             ->add('app_id', TextType::class, [
