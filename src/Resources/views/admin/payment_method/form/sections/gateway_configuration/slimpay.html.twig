@@ -1,0 +1,18 @@
+{# Configuration de la passerelle Slimpay sur l'ecran de methode de paiement.
+
+   Sylius 1 rendait la sous-fiche `gatewayConfig.config` en meme temps que le reste du
+   formulaire. Sylius 2 ne rend que ce qui est declare : sa section « Configuration de la
+   passerelle » n'affiche que le choix de la passerelle et l'indicateur Payum, puis appelle
+   `{% hook 'gateway_configuration.<passerelle>' %}`. C'est a chaque passerelle de fournir son
+   propre volet — sans lui, les champs restent dans le formulaire sans etre affiches, et
+   l'enregistrement de la methode de paiement les remet a vide.
+
+   Le nom de la passerelle etant deja dans le nom du hook, ce gabarit n'a pas a le reverifier. #}
+
+{% set form = hookable_metadata.context.form %}
+
+{% if form.gatewayConfig.config is defined %}
+    {% for champ in form.gatewayConfig.config %}
+        <div class="col-12 col-md-6">{{ form_row(champ) }}</div>
+    {% endfor %}
+{% endif %}
